@@ -6,9 +6,6 @@ kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manif
 # Deploy metal LB resources
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml
 
-# query for check metal LB Pod Resources Status
-states=$(kubectl get pods -o=jsonpath-as-json='{.items[*].status.phase}' -n metallb-system)
-
 # query for get DaemonSets that should be installed on node from Metal LB resources
 metalLbDesiredPod=$(kubectl get ds -n metallb-system -o=jsonpath-as-json='{.items[*].status}')
 totalSpeaker=$(jq -r '.[].desiredNumberScheduled' <<< $metalLbDesiredPod)
@@ -21,7 +18,7 @@ while true
 do
 
   total=0
-  for state in $(jq -r '.[]' <<< "$states");do
+  for state in $(jq -r '.[]' <<< $(kubectl get pods -o=jsonpath-as-json='{.items[*].status.phase}' -n metallb-system));do
     if [ $state = Running ]
     then
       total=$((total+1))
